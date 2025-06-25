@@ -284,26 +284,77 @@ int MinTree(node* root) {
 	return cur->data;
 }
 
-void inOrder(node* root) {
+void inOrder1(node* root) {
 	if (root != NULL) {
-		inOrder(root->left);
+		inOrder1(root->left);
 		cout << root->data << " ";
-		inOrder(root->right);
+		inOrder1(root->right);
 	}
 }
 
-void preOrder(node* root) {
-	if (root != NULL) {
+void inOrder(node* root) 
+{
+	if (root == NULL) return;
+	stack<node*> st;
+	while (root != NULL || !st.empty()) 
+	{
+		while (root != NULL) {
+			st.push(root);
+			root = root->left;
+		}
+
+		root = st.top(); st.pop();
 		cout << root->data << " ";
-		preOrder(root->left);
-		preOrder(root->right);
+
+		root = root->right;
 	}
 }
 
-void postOrder(node* root) {
+void preOrder(node* root) 
+{
+	if (root == NULL) return;
+	stack<node*> st;
+	st.push(root);
+	while (!st.empty()) {
+		root = st.top(); st.pop();
+		cout << root->data << " ";
+
+		if (root->right) st.push(root->right);
+		if (root->left) st.push(root->left);
+	}
+
+}
+
+void postOrder(node* root) 
+{
+	if (root == NULL) return;
+	stack<node*> st1, st2;
+	st1.push(root);
+	while (!st1.empty()) {
+		root = st1.top(); st1.pop();
+		st2.push(root);
+
+		if (root->left) st1.push(root->left);
+		if (root->right) st1.push(root->right);
+	}
+	while (!st2.empty()) {
+		cout << st2.top()->data << " ";
+		st2.pop();
+	}
+}
+
+void preOrder1(node* root) {
 	if (root != NULL) {
-		postOrder(root->left);
-		postOrder(root->right);
+		cout << root->data << " ";
+		preOrder1(root->left);
+		preOrder1(root->right);
+	}
+}
+
+void postOrder1(node* root) {
+	if (root != NULL) {
+		postOrder1(root->left);
+		postOrder1(root->right);
 		cout << root->data << " ";
 	}
 }
@@ -318,15 +369,15 @@ void xoanoc(node* root) {
 		{
 			node* top = s1.top(); s1.pop();
 			cout << top->data << " ";
-			if (top->right != NULL) s2.push(top->right);
-			if (top->left != NULL) s2.push(top->left);
+			if (top->right) s2.push(top->right);
+			if (top->left) s2.push(top->left);
 		}
 		while (!s2.empty()) {
 			node* top = s2.top(); s2.pop();
 			cout << top->data << " ";
 
-			if (top->left != NULL) s1.push(top->left);
-			if (top->right != NULL) s1.push(top->right);
+			if (top->left) s1.push(top->left);
+			if (top->right) s1.push(top->right);
 		}
 	}
 }
@@ -875,7 +926,73 @@ bool Bai41(node* root) {
 	return true;
 }
 
-void menu(node*& root, vector<int>& arr) 
+void printLongestPath(node* root, vector<int>& path, int level, int h)
+{
+	if (root == NULL) return;
+	path.push_back(root->data);
+
+	if (root->left == NULL && root->right == NULL && level == h) {
+		for (int x : path) {
+			cout << x << " ";
+		}
+		cout << endl;
+	}
+	printLongestPath(root->left, path, level + 1, h);
+	printLongestPath(root->right, path, level + 1, h);
+	path.pop_back();
+}
+
+bool isEquivalent(node* root1, node* root2) 
+{
+	if (root1 == NULL && root2 == NULL) return true;
+	if (root1 == NULL || root2 == NULL) return false;
+	if (root1->data != root2->data) return false;
+	return (isEquivalent(root1->left, root2->left)) && (isEquivalent(root1->right, root2->right));
+}
+
+int findGoal(node* root, int k) {
+	int floor = -1, ceil = -1;
+	while (root) {
+		if (root->data == k) return root->data;
+		if (root->data < k) {
+			floor = root->data;
+			root = root->right;
+		}
+		else {
+			ceil = root->data;
+			root = root->left;
+		}
+	}
+	if (floor == -1) return ceil;
+	if (ceil == -1) return floor;
+	return (ceil - k <= k - floor) ? ceil : floor;
+}
+
+int findClosest(node* root, int k) {
+	int closest = root->data;
+	node* cur = root;
+
+	while (cur) {
+		if (abs(cur->data - k) < abs(closest - k)) {
+			closest = cur->data;
+		}
+		// Có thể dùng đệ quy ở này duyệt theo NLR
+
+		if (k < cur->data) {
+			cur = cur->left;
+		}
+		else if (k > cur->data) {
+			cur = cur->right;
+		}
+		else {
+			return cur->data; // k == cur->data
+		}
+	}
+
+	return closest;
+}
+
+void menu(node*& root, vector<int>& arr, vector<int> &a) 
 { 
 	while (true) {
 		system("cls");
@@ -922,6 +1039,9 @@ void menu(node*& root, vector<int>& arr)
 		cout << "39. BST to Balanced BST." << endl;
 		cout << "40. Construct BST from Sorted Array." << endl;
 		cout << "41. Cay nhi phan hoan chinh." << endl;
+		cout << "42. Print Longest Path." << endl;
+		cout << "43. isEquivalent between two binary search tree." << endl;
+		cout << "44. Tim phan tu x sao cho |k - x| la nho nhat." << endl;
 		cout << " --------------------------------------- " << endl;
 		cout << "Enter your choice: ";
 		int choice;
@@ -1219,6 +1339,28 @@ void menu(node*& root, vector<int>& arr)
 			else cout << "Cay nhi phan khong phan chinh" << endl;
 			system("pause");
 		}
+		else if (choice == 42) {
+			int h = height(root);
+			vector<int> path;
+			printLongestPath(root, path, 0, h);
+			system("pause");
+		}
+		else if (choice == 43) {
+			node* root2 = NULL;
+			for (int x : a) {
+				insert1(root2, x);
+			}
+			if (isEquivalent(root, root2)) {
+				cout << "Hai cay nhi phan tim kiem tuong duong nhau" << endl;
+			}
+			else cout << "Khong tuong duong nhau" << endl;
+			system("pause");
+		}
+		else if (choice == 44) {
+			cout << "Nhap k = "; int k; cin >> k;
+			cout << findGoal(root, k);
+			system("pause");
+		}
 		else {
 			cout << "Error. Try again!" << endl;
 			system("pause");
@@ -1228,8 +1370,9 @@ void menu(node*& root, vector<int>& arr)
 
 int main() {
 	node* root = NULL;
-	vector<int> arr = { 5, 3, 4, 1, 6, 8, 7, 11, 12, 15, 14 };
-	menu(root, arr);
+	vector<int> arr1 = { 5, 3, 4, 1, 6, 8, 7, 11, 12, 15, 14, 16 };
+	vector<int> arr2 = { 5, 6, 3, 1, 4, 8, 7, 11, 12, 15, 16, 14 };
+	menu(root, arr1, arr2);
 	system("pause");
 	return 0;
 }
