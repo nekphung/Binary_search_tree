@@ -8,6 +8,7 @@ using namespace std;
 
 struct node {
 	int data;
+	//int items;
 	node* left, * right;
 	node(int key) {
 		data = key;
@@ -196,6 +197,7 @@ void remove2(node*& root, int key)
 		}
 
 		cur->data = succ->data; // Gan lai gia tri cua cur
+
 		if (succParent->left == succ) {
 			succParent->left = succ->right;
 		}
@@ -205,6 +207,7 @@ void remove2(node*& root, int key)
 		delete succ;
 	}
 }
+
 
 // Xoa dung de quy va tra ve con tro
 node* remove3(node*& root, int key)
@@ -992,10 +995,162 @@ int findClosest(node* root, int k) {
 	return closest;
 }
 
+int countNode(node* root) {
+	if (root == NULL) return 0;
+	return 1 + countNode(root->left) + countNode(root->right);
+}
+
+void traversal(node* root, int& k, int& ans) 
+{
+	if (root == NULL) return;
+	traversal(root->left, k, ans);
+	k--;
+	if (k == 0) {
+		ans = root->data;
+		return;
+	}
+	traversal(root->right, k, ans);
+}
+
+int findmedium(node* root) 
+{
+	if (root == NULL) return -1;
+	int n = countNode(root);
+	int k = (n + 1) / 2;
+	int ans = -1;
+	traversal(root, k, ans);
+	return ans;
+}
+
+//int findKth(node* root, int k) {
+//	if (root == NULL) return -1;
+//
+//	int leftCount = 0;
+//	if (root->left != NULL) {
+//		leftCount = root->left->items;
+//	}
+//	if (k == leftCount + 1) return root->data;
+//	else if (k <= leftCount) return findKth(root->left, k);
+//	else return findKth(root->right, k - (leftCount + 1));
+//}
+//
+//int Findmedium(node* root) {
+//	if (root == NULL) return -1;
+//	int n = root->items + 1;
+//	int k = (n + 1) / 2;
+//	return findKth(root, k);
+//}
+
+int Height(node* root) {
+	if (root == NULL) return -1;
+	else return 1 + max(Height(root->left), Height(root->right));
+}
+
+void TraverSal(node* root, int level, int height, int &ans) {
+	if (root == NULL) return;
+	if (level == height && ans == -1) {
+		ans = root->data;
+		return;
+	}
+	TraverSal(root->right, level + 1, height, ans);
+	TraverSal(root->left, level + 1, height, ans);
+}
+
+int Bai46(node* root) {
+	if (root == NULL) return -1;
+	int h = Height(root);
+	int ans = -1;
+	TraverSal(root, 0, h, ans);
+	return ans;
+}
+
+bool isPrime(int n) {
+	if (n < 2) return false;
+	else {
+		for (int i = 2; i <= sqrt(n); i++) {
+			if (n % i == 0) return false;
+		}
+	}
+	return true;
+}
+
+int countNT(node* root) {
+	if (root == NULL) return 0;
+
+	int count = 0;
+
+	if (isPrime(root->data)) count++;
+	count += countNT(root->left);
+	count += countNT(root->right);
+
+	return count;
+}
+
+void bai47(node* root, int& ans) {
+	if (root == NULL) return;
+	int leftCount = countNT(root->left);
+	int rightCount = countNT(root->right);
+	if (leftCount < rightCount) {
+		ans++;
+	}
+	bai47(root->left, ans);
+	bai47(root->right, ans);
+}
+
+int Bai47(node* root) {
+	if (root == NULL) return -1;
+	int ans = 0;
+	bai47(root, ans);
+	return ans;
+}
+
+int countSubTree(node* root) {
+	if (root == NULL) return 0;
+	else return 1 + countSubTree(root->left) + countSubTree(root->right);
+}
+
+void bai48(node* root) {
+	if (root == NULL) return;
+    // in ra theo level kem theo so luong node con cua moi node
+	queue<node*>q;
+	q.push(root);
+	while (!q.empty()) {
+		int size = q.size();
+		for (int i = 0; i < size; i++) {
+			node* top = q.front(); q.pop();
+			cout << top->data << " (" << countSubTree(top) - 1 << ") ";
+			if (top->left) q.push(top->left);
+			if (top->right) q.push(top->right);
+		}
+		cout << endl;
+	}
+}
+
+void bai49(node* root, int& ans) {
+	if (root == NULL) return;
+	// Xu ly tai node root sau do toi L roi toi R theo truong hop duyet NLR
+	int leftCount = countSubTree(root->left);
+	int rightCount = countSubTree(root->right);
+	if (leftCount < rightCount) {
+		ans++;
+	}
+	bai49(root->left, ans);
+	bai49(root->right, ans);
+}
+
+int Bai49(node* root) {
+	if (root == NULL) return -1;
+	int ans = 0;
+	bai49(root, ans);
+	return ans;
+}
+
 void menu(node*& root, vector<int>& arr, vector<int> &a) 
 { 
 	while (true) {
 		system("cls");
+		cout << "Level order: " << endl;
+		levelOrder(root);
 		cout << " ---------------- MENU ---------------- " << endl;
 		cout << "0. Exit." << endl;
 		cout << "1. Insert 1 (recursive)." << endl;
@@ -1007,7 +1162,7 @@ void menu(node*& root, vector<int>& arr, vector<int> &a)
 		cout << "7. Delete 1 (recursive)." << endl;
 		cout << "8. Delete 2 (non-recursive)." << endl;
 		cout << "9. Delete 3 (recursive, returns node)." << endl;
- 		cout << "10. Find floor (greatest value <= key)." << endl;
+		cout << "10. Find floor (greatest value <= key)." << endl;
 		cout << "11. Find ceil (smallest value >= key)." << endl;
 		cout << "12. Find maximum value in BST." << endl;
 		cout << "13. Find minimum value in BST." << endl;
@@ -1042,6 +1197,12 @@ void menu(node*& root, vector<int>& arr, vector<int> &a)
 		cout << "42. Print Longest Path." << endl;
 		cout << "43. isEquivalent between two binary search tree." << endl;
 		cout << "44. Tim phan tu x sao cho |k - x| la nho nhat." << endl;
+		cout << "45. Tim trung vi cua cay theo lower bound." << endl;
+		cout << "45.1. Tim trung vi khi no co them truong items." << endl;
+		cout << "46. In ra phan tu cuoi cung phai nhat." << endl;
+		cout << "47. In ra so node co so luong node con trai nhieu hon so node con phai ve SL so NT." << endl;
+		cout << "48. In ra so node con cua 1 node bat ky trong cay." << endl;
+		cout << "49. In ra so luong node co cay con trai nhieu hon cay con phai." << endl;
 		cout << " --------------------------------------- " << endl;
 		cout << "Enter your choice: ";
 		int choice;
@@ -1049,7 +1210,7 @@ void menu(node*& root, vector<int>& arr, vector<int> &a)
 		if (choice == 0) {
 			break;
 		}
-		else if (choice == 1) 
+		else if (choice == 1)
 		{
 			for (int x : arr) {
 				insert1(root, x);
@@ -1152,7 +1313,7 @@ void menu(node*& root, vector<int>& arr, vector<int> &a)
 		else if (choice == 14)
 		{
 			cout << "InOrder: ";
-			inOrder(root); 
+			inOrder(root);
 			cout << "\nPreOrder: ";
 			preOrder(root);
 			cout << "\nPostOrder: ";
@@ -1223,7 +1384,7 @@ void menu(node*& root, vector<int>& arr, vector<int> &a)
 			system("pause");
 		}
 		else if (choice == 24) {
-			int a, b; 
+			int a, b;
 			cout << "Nhap a va b = ";
 			cin >> a >> b;
 			cout << Bai24(root, a, b) << endl;
@@ -1317,7 +1478,7 @@ void menu(node*& root, vector<int>& arr, vector<int> &a)
 			int target;
 			cout << "Nhap target = ";
 			cin >> target;
-			cout << "Ans = " << Bai36(root, root, target)/2 << endl;
+			cout << "Ans = " << Bai36(root, root, target) / 2 << endl;
 			system("pause");
 		}
 		else if (choice == 37) {
@@ -1361,6 +1522,30 @@ void menu(node*& root, vector<int>& arr, vector<int> &a)
 			cout << findGoal(root, k);
 			system("pause");
 		}
+		else if (choice == 45) {
+			int ans = findmedium(root);
+			cout << "Ans = " << ans << endl;
+			system("pause");
+		}
+		else if (choice == 46) {
+			int ans = Bai46(root);
+			cout << ans << endl;
+			system("pause");
+		}
+		else if (choice == 47) {
+			int ans = Bai47(root);
+			cout << "Ans = " << ans << endl;
+			system("pause");
+		}
+		else if (choice == 48) {
+			bai48(root);
+			system("pause");
+		}
+		else if (choice == 49) {
+			int ans = Bai49(root);
+			cout << "Ans = " << ans << endl;
+			system("pause");
+		}
 		else {
 			cout << "Error. Try again!" << endl;
 			system("pause");
@@ -1370,7 +1555,7 @@ void menu(node*& root, vector<int>& arr, vector<int> &a)
 
 int main() {
 	node* root = NULL;
-	vector<int> arr1 = { 5, 3, 4, 1, 6, 8, 7, 11, 12, 15, 14, 16 };
+	vector<int> arr1 = { 5, 6, 3, 1, 4, 8, 7, 11, 12, 15, 16, 14 };
 	vector<int> arr2 = { 5, 6, 3, 1, 4, 8, 7, 11, 12, 15, 16, 14 };
 	menu(root, arr1, arr2);
 	system("pause");
